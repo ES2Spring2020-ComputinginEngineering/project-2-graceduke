@@ -38,14 +38,14 @@ def assign_centroids (centroids, glucose, hemoglobin):
     k = centroids.shape[0]
     distances = np.zeros((k, len(glucose)))
     c_assignments = np.zeros((len(glucose)))
-    d_array=[]
+    d_array =[]
     for i in centroids:
-        g = centroids[1]
-        h = centroids [1]
+        g = centroids[i,1]
+        h = centroids [i,0]
     for i in glucose:
-        distances = np.array (np.sqrt(((h-hemoglobin)**2)+((g-glucose)**2)))
+        distances[i] = np.array (np.sqrt(((h-hemoglobin)**2)+((g-glucose)**2)))
         d_array.append(distances) 
-    c_assignments = np.argmin(d_array, axis =0)
+    c_assignments = np.argmin(distances, axis =0)
     return c_assignments, d_array
 
 #Function takes 4 parameters-- k (same from centroid_pints), c_assignments, glucose, and hemoglobin
@@ -96,11 +96,11 @@ def graphKMeans(k, glucose, hemoglobin, c_assignment, updated_array):
     plt.legend()
     plt.show()
 
-#Function takes 2 parameters, classification and c_assignments
+#Function takes 2 parameters, classification and c_assignment
 #If the classification are the same, they return either true positive or negative tests
 #Otherwise, they return false postives/negatives
 #Returns the amount of true positives, negatives and false positives, negatives
-def calc_positive_negatives(classification, c_assignments):
+def calc_positive_negatives(classification, c_assignment):
     TP = 0
     FP = 0
     TN = 0
@@ -108,16 +108,16 @@ def calc_positive_negatives(classification, c_assignments):
     CKD = 0
     nCKD= 0
     for i in range (158):
-        if classification[i] == c_assignments[i]==0:
+        if classification[i] == c_assignment[i]==0:
             TP += 1
             CKD += 1
-        elif classification[i] == c_assignments[i]==1:
+        elif classification[i] == c_assignment[i]==1:
             TN += 1
             nCKD += 1
-        elif classification[i] == 0 and c_assignments[i]==1:
+        elif classification[i] == 0 and c_assignment[i]==1:
             FP += 1
             nCKD += 1
-        elif classification[i] == 1 and c_assignments[i]==0:
+        elif classification[i] == 1 and c_assignment[i]==0:
             FN += 1
             CKD +=1
     return TP, FP, TN, FN, CKD, nCKD
