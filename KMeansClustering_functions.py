@@ -26,7 +26,7 @@ def normalizeData(glucose, hemoglobin, classification):
 #Function takes one parameter, k to determine the number of centroids to be made
 #Returns the random centroids
 def centroid_points(k):
-    centroids = np.random.randint((k,2))
+    centroids = np.random.rand(k,2)
     return centroids
 
 #Function takes 3 parameters, the random centroids, glucose and hemoglobin
@@ -36,15 +36,13 @@ def centroid_points(k):
 def assign_centroids (centroids, glucose, hemoglobin):
     glucose = openckdfile()
     k = centroids.shape[0]
-    distances = np.zeros((k, len(glucose)))
-    c_assignments = np.zeros((len(glucose)))
-    d_array =[]
-    for i in centroids:
+    d_array = np.zeros((158, k))
+    c_assignments = np.zeros(158) 
+    for i in range(k):
         g = centroids[i,1]
         h = centroids [i,0]
-    for i in glucose:
-        distances[i] = np.array (np.sqrt(((h-hemoglobin)**2)+((g-glucose)**2)))
-        d_array.append(distances) 
+        distances = np.array (np.sqrt(((h-hemoglobin)**2)+((g-glucose)**2)))
+        d_array[:,i]= distances[i]
     c_assignments = np.argmin(distances, axis =0)
     return c_assignments, d_array
 
@@ -55,10 +53,10 @@ def update(k, c_assignments, glucose, hemoglobin):
     updated_array = np.zeros((k,2))
     h_centroid = np.zeros ((1))
     g_centroid = np.zeros((1))
-    for i in range (update.shape[0]):
+    for i in range (updated_array.shape[0]):
         h_centroid = np.mean(hemoglobin[c_assignments == i])
         g_centroid = np.mean(glucose[c_assignments == i])
-        update[i] = np.append(h_centroid, g_centroid)
+        updated_array[i] = np.append(h_centroid, g_centroid)
     return updated_array
 
 #Function takes 2 parameters same k from centroid_points, used for update, and
@@ -74,23 +72,22 @@ def iterate(k, iterations):
     updated_array = centroid_points(k)
     while iterations != 0 :
         c_assignments = assign_centroids(centroids, glucose, hemoglobin)
-        updated_array = updated_array(k, c_assignments, glucose, hemoglobin)
+        updated_array = update(k, c_assignments, glucose, hemoglobin)
         iterations = iterations - 1
     return c_assignments, updated_array, glucose, hemoglobin, classification
 
 #Function takes 5 parameters and graphs the data returned by iterate
 #Graphs the points with a certain color based on its centroid assignment
-def graphKMeans(k, glucose, hemoglobin, c_assignment, updated_array): 
+def graphKMeans(k, glucose, hemoglobin, c_assignment, centroids): 
     glucose, hemoglobin, classification = openckdfile()
     gnorm, hnorm, classification = normalizeData(glucose, hemoglobin, classification)
     centroids = centroid_points(k)
     c_assignments= assign_centroids (centroids, glucose, hemoglobin)
-    updated_array = update(k, c_assignments, glucose, hemoglobin)
     plt.figure()
-    for i in range(c_assignments.max()+1):
+    for i in range(158):
         rcolor = np.random.rand(3,)
         plt.plot(hemoglobin [c_assignments==i], glucose [c_assignments==i], 'o', label = "Class"+str(i), color = rcolor)
-        plt.plot(updated_array[i, 0], updated_array[i, 1], "D", label = "Centroid " + str(i), color = rcolor)
+        plt.plot(centroids[i, 1], centroids[i, 0], "D", label = "Centroid " + str(i), color = rcolor)
     plt.xlabel("Hemoglobin")
     plt.ylabel("Glucose")
     plt.legend()
@@ -110,16 +107,17 @@ def calc_positive_negatives(classification, c_assignment):
     for i in range (158):
         if classification[i] == c_assignment[i]==0:
             TP += 1
-            CKD += 1
         elif classification[i] == c_assignment[i]==1:
             TN += 1
-            nCKD += 1
         elif classification[i] == 0 and c_assignment[i]==1:
             FP += 1
-            nCKD += 1
         elif classification[i] == 1 and c_assignment[i]==0:
             FN += 1
-            CKD +=1
+    for i in range(158):
+        if classification[i] == 0:
+            nCKD += 1
+        elif classification[i] == 1:
+            CKD += 1
     return TP, FP, TN, FN, CKD, nCKD
 
 #Function has 6 parameters, return values of calc_positive_negatives
