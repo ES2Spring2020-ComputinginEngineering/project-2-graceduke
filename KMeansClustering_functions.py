@@ -42,7 +42,7 @@ def assign_centroids (centroids, glucose, hemoglobin):
         g = centroids[i,1]
         h = centroids [i,0]
         distances = np.array (np.sqrt(((h-hemoglobin)**2)+((g-glucose)**2)))
-        d_array[:,i]= distances[i]
+        d_array[:,i]= distances [i]
     c_assignments = np.argmin(distances, axis =0)
     return c_assignments, d_array
 
@@ -78,16 +78,16 @@ def iterate(k, iterations):
 
 #Function takes 5 parameters and graphs the data returned by iterate
 #Graphs the points with a certain color based on its centroid assignment
-def graphKMeans(k, glucose, hemoglobin, c_assignment, centroids): 
+def graphKMeans(k, glucose, hemoglobin, c_assignment, centroids):
     glucose, hemoglobin, classification = openckdfile()
     gnorm, hnorm, classification = normalizeData(glucose, hemoglobin, classification)
     centroids = centroid_points(k)
-    c_assignments= assign_centroids (centroids, glucose, hemoglobin)
+    c_assignment = assign_centroids (centroids, glucose, hemoglobin)
     plt.figure()
-    for i in range(158):
+    for i in range(k):
         rcolor = np.random.rand(3,)
-        plt.plot(hemoglobin [c_assignments==i], glucose [c_assignments==i], 'o', label = "Class"+str(i), color = rcolor)
         plt.plot(centroids[i, 1], centroids[i, 0], "D", label = "Centroid " + str(i), color = rcolor)
+        plt.plot(hemoglobin[c_assignment== 1], glucose[c_assignment==1], ".", label = "Class " + str(i), color = rcolor)
     plt.xlabel("Hemoglobin")
     plt.ylabel("Glucose")
     plt.legend()
@@ -105,13 +105,13 @@ def calc_positive_negatives(classification, c_assignment):
     CKD = 0
     nCKD= 0
     for i in range (158):
-        if classification[i] == c_assignment[i]==0:
+        if np.all(classification[i]) == np.all(c_assignment[i])==0:
             TP += 1
-        elif classification[i] == c_assignment[i]==1:
+        elif np.all(classification[i]) == np.all(c_assignment[i])==1:
             TN += 1
-        elif classification[i] == 0 and c_assignment[i]==1:
+        elif np.all(classification[i]) == 0 and np.all(c_assignment[i])==1:
             FP += 1
-        elif classification[i] == 1 and c_assignment[i]==0:
+        elif np.all(classification[i]) == 1 and np.all(c_assignment[i])==0:
             FN += 1
     for i in range(158):
         if classification[i] == 0:
@@ -128,9 +128,8 @@ def percentages(TP, FP, TN, FN, CKD, nCKD):
     percentTN = "Percentage of True Negatives:" + str((TN/nCKD)*100)+ "%"
     percentFN = "Percentage of False Negatives:" + str((FN/CKD)*100)+ "%"
     return percentTP, percentFP, percentTN, percentFN
-    
-    
-    
+
+
     
     
     
