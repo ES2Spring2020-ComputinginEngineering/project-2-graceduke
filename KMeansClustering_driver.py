@@ -13,5 +13,5 @@ c_assignment, updated_array, glucose, hemoglobin, classification = kmc.iterate(2
 
 kmc.graphKMeans(k, glucose, hemoglobin, c_assignment, updated_array)
 
-TP, FP, TN, FN, CKD, nCKD = kmc.calc_positive_negatives(classification, c_assignment)
-print (kmc.percentages(TP, FP, TN, FN, CKD, nCKD))
+#TP, FP, TN, FN, CKD, nCKD = kmc.calc_positive_negatives(classification, c_assignment)
+#print (kmc.percentages(TP, FP, TN, FN, CKD, nCKD))
