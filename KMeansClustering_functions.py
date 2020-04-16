@@ -20,7 +20,7 @@ def normalizeData(glucose, hemoglobin, classification):
     hnorm = (hemoglobin - 3.1) / (17.8 - 3.1)
     gnorm = np.array(gnorm)
     hnorm = np.array(hnorm)
-    return (gnorm, hnorm, classification)
+    return gnorm, hnorm, classification
 
 
 #Function takes one parameter, k to determine the number of centroids to be made
@@ -34,7 +34,7 @@ def centroid_points(k):
 #These distance values are the assigned values for each centroid 
 #Returns the assignment and the distances for each centroid
 def assign_centroids (centroids, glucose, hemoglobin):
-    glucose = openckdfile()
+    #glucose = openckdfile()
     k = centroids.shape[0]
     d_array = np.zeros((158, k))
     c_assignments = np.zeros(158) 
@@ -42,9 +42,9 @@ def assign_centroids (centroids, glucose, hemoglobin):
         g = centroids[i,1]
         h = centroids [i,0]
         distances = np.array (np.sqrt(((h-hemoglobin)**2)+((g-glucose)**2)))
-        d_array[:,i]= distances [i]
-    c_assignments = np.argmin(distances, axis =0)
-    return c_assignments, d_array
+        d_array[:,i]= distances
+    c_assignments = np.argmin(d_array, axis = 1)
+    return c_assignments#, d_array
 
 #Function takes 4 parameters-- k (same from centroid_pints), c_assignments, glucose, and hemoglobin
 #Updates the centroid values to be more accurate by finding the mean glucose and hemoglobin
@@ -68,11 +68,11 @@ def iterate(k, iterations):
     glucose, hemoglobin, classification = openckdfile()
     gnorm, hnorm, classification = normalizeData(glucose, hemoglobin, classification)
     centroids = centroid_points(k)
-    c_assignments = assign_centroids(centroids, glucose, hemoglobin)
+    c_assignments = assign_centroids(centroids, gnorm, hnorm)
     updated_array = centroid_points(k)
     while iterations != 0 :
-        c_assignments = assign_centroids(centroids, glucose, hemoglobin)
-        updated_array = update(k, c_assignments, glucose, hemoglobin)
+        c_assignments = assign_centroids(updated_array, gnorm, hnorm)
+        updated_array = update(k, c_assignments, gnorm, hnorm)
         iterations = iterations - 1
     return c_assignments, updated_array, glucose, hemoglobin, classification
 
@@ -81,13 +81,13 @@ def iterate(k, iterations):
 def graphKMeans(k, glucose, hemoglobin, c_assignment, centroids):
     glucose, hemoglobin, classification = openckdfile()
     gnorm, hnorm, classification = normalizeData(glucose, hemoglobin, classification)
-    centroids = centroid_points(k)
-    c_assignment = assign_centroids (centroids, glucose, hemoglobin)
+    #centroids = centroid_points(k)
+    #c_assignment = assign_centroids (centroids, glucose, hemoglobin)
     plt.figure()
     for i in range(k):
         rcolor = np.random.rand(3,)
-        plt.plot(centroids[i, 1], centroids[i, 0], "D", label = "Centroid " + str(i), color = rcolor)
-        plt.plot(hemoglobin[c_assignment== 1], glucose[c_assignment==1], ".", label = "Class " + str(i), color = rcolor)
+        plt.plot(centroids[i, 0], centroids[i, 1], "D", label = "Centroid " + str(i), color = rcolor)
+        plt.plot(hnorm[c_assignment== i], gnorm[c_assignment==i], ".", label = "Class " + str(i), color = rcolor)
     plt.xlabel("Hemoglobin")
     plt.ylabel("Glucose")
     plt.legend()
@@ -105,19 +105,19 @@ def calc_positive_negatives(classification, c_assignment):
     CKD = 0
     nCKD= 0
     for i in range (158):
-        if np.all(classification[i]) == np.all(c_assignment[i])==0:
-            TP += 1
-        elif np.all(classification[i]) == np.all(c_assignment[i])==1:
+        if (classification[i] + c_assignment[i])==2:
             TN += 1
-        elif np.all(classification[i]) == 0 and np.all(c_assignment[i])==1:
-            FP += 1
-        elif np.all(classification[i]) == 1 and np.all(c_assignment[i])==0:
-            FN += 1
-    for i in range(158):
-        if classification[i] == 0:
-            nCKD += 1
-        elif classification[i] == 1:
-            CKD += 1
+            nCKD +=1
+        elif (classification[i] + c_assignment[i])==0:
+            TP += 1
+            CKD +=1
+        elif (classification[i] + c_assignment[i])==1:
+            if classification[i] == 0:
+                FN +=1
+                CKD +=1
+            elif classification[i] == 1:
+                FP +=1
+                nCKD +=1
     return TP, FP, TN, FN, CKD, nCKD
 
 #Function has 6 parameters, return values of calc_positive_negatives
